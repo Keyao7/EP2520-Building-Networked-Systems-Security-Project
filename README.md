@@ -1,4 +1,4 @@
-# EP2520-Building-Networked-Systems-Security-BNSS-Project
+# EP2520-Building-Networked-Systems-Security-Project
 
 ## Network Structure
 
