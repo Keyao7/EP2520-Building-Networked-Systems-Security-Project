@@ -1,0 +1,163 @@
+https://blog.csdn.net/rzytc/article/details/50647095
+SSL编程指南
+
+https://code.visualstudio.com/docs/cpp/config-wsl
+Using C++ and WSL in VS Code
+
+https://askubuntu.com/questions/1126893/how-to-install-openssl-1-1-1-and-libssl-package#:~:text=1%20Answer.%201%20Step%201%20%3A%20Download%20openssl,shown%20below.%20Create%20a%20file%20called%20...%20
+How to install OpenSSL 1.1.1 and libSSL package?
+
+https://stackoverflow.com/questions/17915098/openssl-ssl-h-no-such-file-or-directory-during-installation-of-git
+"openssl/ssl.h: No such file or directory" during Installation of Git
+ sudo apt-get install libssl-dev
+ 
+ https://stackoverflow.com/questions/5593284/undefined-reference-to-ssl-library-init-and-ssl-load-error-strings/20323251#20323251
+ Undefined reference to SSL_library_init and SSL_load_error_strings
+ gcc foo.c -o foo.exe -L/usr/local/ssl/lib -lssl -lcrypto
+ 
+ 
+ https://wiki.openssl.org/index.php/Main_Page
+ 
+ openssl s_server -cert "server-cert.pem" -key "server-key.pem" -state -max_pipelines 3 -Verify 5 -CAfile "/home/chiron/CA/ca-cert.pem" -verify_return_error  -HTTP
+ 
+ openssl s_server -cert "server-cert.pem" -key "server-key.pem" -Verify 5 -CAfile "~/CA/ca-cert.pem" -HTTP
+ 
+ openssl s_client -connect 172.30.52.41:4433 -brief -sess_out ~/session_a.pem -sess_in ~/session_a.pem  -cert ./client-cert.pem -key ~/client-key.pem
+ 
+ openssl req -newkey rsa:4096 -nodes -keyout client-key.pem -out client-req.pem -subj "/C=SE/ST=Stockholm/L=Stockholm/O=ACME/OU=Headquarters/emailAddress=info@acme.com"
+
+
+openssl x509 -req -in client-req.pem -days 60 -CA ca-cert.pem -CAkey ca-key.pem -CAcreateserial -out client-cert.pem
+
+openssl s_server -port 4433 -cert server-cert.pem -key server-key.pem -state -max_pipelines 3 -Verify 5 -CAfile ~/CA/ca-cert.pem -verify_return_error  -HTTP
+ 
+ https://superuser.com/questions/977104/ssh-connect-to-host-localhost-port-22-connection-refused
+ https://www.technewstoday.com/port-22-connection-refused/
+ sudo apt-get remove openssh-client openssh-server
+ sudo apt-get install openssh-client openssh-server
+ sudo service ssh status
+ 
+ grep Port /etc/ssh/sshd_config
+ 
+ https://unix.stackexchange.com/questions/8518/how-to-get-my-own-ip-address-and-save-it-to-a-variable-in-a-shell-script
+ 
+ 
+ https://zhuanlan.zhihu.com/p/425312804
+ 
+  package architecture (amd64) does not match system (arm64)
+  
+  https://widget.rave.office.net/chat?partner=GetHelp&requestid=633efd23-512c-48ec-bad2-033daeab4046
+  
+  To reconfigure manually, use the /usr/local/openvpn_as/bin/ovpn-init tool.
+
++++++++++++++++++++++++++++++++++++++++++++++++
+Access Server 2.11.3 has been successfully installed in /usr/local/openvpn_as
+Configuration log file has been written to /usr/local/openvpn_as/init.log
+
+
+Access Server Web UIs are available here:
+Admin  UI: https://192.168.31.180:943/admin
+Client UI: https://192.168.31.180:943/
+To login please use the "openvpn" account with "Jn3eEcGhuGsc" password.
+(password can be changed on Admin UI)
++++++++++++++++++++++++++++++++++++++++++++++++
+
+https://yefawei.github.io/2020/09/17/Linux/ubuntu%20%E7%A8%8B%E5%BA%8F%E5%90%8E%E5%8F%B0%E8%BF%90%E8%A1%8C%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/
+Ubuntu 程序后台运行的几种方法
+使用 screen 很方便，有以下几个常用选项：
+
+用 screen -dmS session_name 来建立一个处于断开模式下的会话（并指定其会话名）。
+
+用 screen -ls 来列出所有会话。
+
+用 screen -r session_name 来重新连接指定会话。
+
+用快捷键 CTRL-a d 来暂时断开当前会话。
+
+https://www.openssl.org/docs/man1.0.2/man1/openssl-s_client.html
+openssl s_client -connect $SERVER_IP:4433 -servername server -brief -cert ~/client-cert.pem -key ~/client-key.pem -verify_return_error -state -CAfile ~/CA/ca-cert.pem
+
+https://www.openssl.org/docs/man1.1.1/man1/x509.html
+Display the contents of a certificate:
+openssl x509 -in ca-cert.pem -noout -text
+openssl x509 -in client-cert.pem -noout -text
+
+ 
+ ssh pi@85.230.191.21
+ sudo chmod -R 777 xxx
+ 已修改为rwx可读可写可执行文件
+ openssl verify -CAfile ./CA/ca-cert.pem - client-cert.pem
+ 
+ https://yefawei.github.io/2020/09/17/Linux/ubuntu%20%E7%A8%8B%E5%BA%8F%E5%90%8E%E5%8F%B0%E8%BF%90%E8%A1%8C%E7%9A%84%E5%87%A0%E7%A7%8D%E6%96%B9%E6%B3%95/
+ 
+ 
+ usage: nc [-46CDdFhklNnrStUuvZz] [-I length] [-i interval] [-M ttl]
+          [-m minttl] [-O length] [-P proxy_username] [-p source_port]
+          [-q seconds] [-s sourceaddr] [-T keyword] [-V rtable] [-W recvlimit]
+          [-w timeout] [-X proxy_protocol] [-x proxy_address[:port]]
+          [destination] [port]
+        Command Summary:
+                -4              Use IPv4
+                -6              Use IPv6
+                -b              Allow broadcast
+                -C              Send CRLF as line-ending
+                -D              Enable the debug socket option
+                -d              Detach from stdin
+                -F              Pass socket fd
+                -h              This help text
+                -I length       TCP receive buffer length
+                -i interval     Delay interval for lines sent, ports scanned
+                -k              Keep inbound sockets open for multiple connects
+                -l              Listen mode, for inbound connects
+                -M ttl          Outgoing TTL / Hop Limit
+                -m minttl       Minimum incoming TTL / Hop Limit
+                -N              Shutdown the network socket after EOF on stdin
+                -n              Suppress name/port resolutions
+                -O length       TCP send buffer length
+                -P proxyuser    Username for proxy authentication
+                -p port         Specify local port for remote connects
+                -q secs         quit after EOF on stdin and delay of secs
+                -r              Randomize remote ports
+                -S              Enable the TCP MD5 signature option
+                -s sourceaddr   Local source address
+                -T keyword      TOS value
+                -t              Answer TELNET negotiation
+                -U              Use UNIX domain socket
+                -u              UDP mode
+                -V rtable       Specify alternate routing table
+                -v              Verbose
+                -W recvlimit    Terminate after receiving a number of packets
+                -w timeout      Timeout for connects and final net reads
+                -X proto        Proxy protocol: "4", "5" (SOCKS) or "connect"
+                -x addr[:port]  Specify proxy address and port
+                -Z              DCCP mode
+                -z              Zero-I/O mode [used for scanning]
+				
+				
+https://computingforgeeks.com/install-and-configure-freeipa-server-on-ubuntu/
+
+https://www.golinuxcloud.com/openssl-create-certificate-chain-linux/
+
+https://linuxhandbook.com/system-has-not-been-booted-with-systemd/
+
+https://www.arubacloud.com/tutorial/how-to-enable-https-protocol-with-apache-2-on-ubuntu-20-04.aspx
+
+https://www.openssl.org/docs/man1.0.2/man1/pkcs12.html
+
+openssl pkcs12 -in filename -out -inkey -name -chain -CAfile file
+
+openssl pkcs12 -export -in client.pem -inkey client.key -CAfile cert-bundle.pem -chain -name "ACME certificate" -certfile ca.pem -out client.p12
+
+# netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=172.30.48.1
+netsh interface portproxy add v4tov4 listenport=80 listenaddress=0.0.0.0 connectport=80 connectaddress=172.29.41.233
+登录后复制
+分类专栏
+
+text=`echo $text | sed sed 's/[[:space:]]//g'
+ 
+# 这些方法没有测试，写法参照上面的。
+# 去掉尾巴的空格 sed  's/[ \t]*$//g'
+# 删除前、后空格，不删除中间空格 sed -e 's/^[ \t]*//g' -e 's/[ \t]*$//g'
+# 删除字符串中所有空格 sed 's/[[:space:]]//g'
+ 
+openssl pkcs12 -export -in client.pem -inkey client.key -CAfile ca.pem -name "ACME certificate 1" -certfile root.pem -out client.p12
