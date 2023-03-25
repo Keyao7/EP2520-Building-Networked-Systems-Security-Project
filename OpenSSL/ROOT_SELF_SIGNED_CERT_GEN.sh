@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Remove all *.pem *.csr
+read -p "Press enter to continue: All *.pem *.csr would be removed!"
 files=$(ls *.pem 2> /dev/null | wc -l)
 if [ "$files" != "0" ]; then
 	rm *.pem
@@ -9,12 +11,12 @@ if [ "$files" != "0" ]; then
 	rm *.csr
 fi
 
-read -p "Press enter to continue: Check OpenSSL verion (locally)"
 # Check OpenSSL verion (locally)
+read -p "Press enter to continue: Check OpenSSL verion (locally)"
 openssl version
 
+# 1. Generate ROOT's private key and self-signed.pemtificate (Use root.cnf if exists)
 read -p "Press enter to continue: 1. Generate ROOT's private key and self-signed.pemtificate"
-# 1. Generate ROOT's private key and self-signed.pemtificate
 if [ ! -f root.key ]; then
 	openssl genrsa -out root.key 4096
 fi
@@ -25,7 +27,7 @@ else
 	openssl req -x509 -key root.key -days 365 -nodes -out root.pem -subj "/C=SE/ST=Stockholm/L=Stockholm/O=KTH/OU=NSS-BNSS/CN=root.demo.com/emailAddress=root@demo.com"
 fi
 
-# 2. Generate CA server's private key and.pemtificate signing request (CSR)
+# 2. Generate CA server's private key and.pemtificate signing request (CSR) (Use ca.cnf if exists)
 read -p "Press enter to continue: 2. Generate CA server's private key and certificate signing request (CSR)"
 if [ ! -f ca.key ]; then
 	openssl genrsa -out ca.key 4096

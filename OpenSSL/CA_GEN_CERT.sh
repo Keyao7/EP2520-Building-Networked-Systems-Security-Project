@@ -1,6 +1,16 @@
 #!/bin/bash
 
+#####################################
+#########    DEPRECATED   ###########
+#####################################
+
 SERVER_PORT=6666
+
+# According to Konstantinos' advice, here can use as a logging form to fetch client's IP instead of using the while loop.
+# However, this part is deprecated before finished.
+# But all in all, thank you very much for your help! Konstantinos.
+# stackoverflow: https://stackoverflow.com/questions/68016063/netcat-nc-listen-grep-ip-and-disconnect
+# nc -lnv -p $SERVER_PORT >> nc.log 2>&1
 
 # Start the netcat server in listen mode
 nc -lnv $SERVER_PORT > ~/CA/client/client-req.pem & while true; do

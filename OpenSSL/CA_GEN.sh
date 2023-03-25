@@ -65,7 +65,20 @@ fi
 
 # Sign Certificate for local
 echo -e "\n\n${file_name}.csr is under \"${dir_var}/\". Sending to CA..."
-openssl x509 -req -in $dir_var/$file_name.csr -days 60 -CA $dir_ca/ca.pem -CAkey $dir_ca/ca.key -CAcreateserial -out $dir_var/$file_name.pem
+if [ -f $dir_ca/ca.cnf ]; then
+	if [ ! -f $dir_ca/serial ]; then
+		echo 00 > $dir_ca/serial
+	fi
+	if [ ! -f $dir_ca/index.txt ]; then
+		touch index.txt
+	fi
+	if [ ! -d $dir_ca/certs ]; then
+		mkdir $dir_ca/certs
+	fi
+	openssl ca -config $dir_ca/ca.cnf -notext -batch -in $dir_var/$file_name.csr -out $dir_var/$file_name.pem
+else
+	openssl x509 -req -in $dir_var/$file_name.csr -days 60 -CA $dir_ca/ca.pem -CAkey $dir_ca/ca.key -CAcreateserial -out $dir_var/$file_name.pem
+fi
 echo -e "\n\n${file_name}.pem is under \"${dir_var}/\". "
 chmod g+rw $dir_var/$file_name.pem
 

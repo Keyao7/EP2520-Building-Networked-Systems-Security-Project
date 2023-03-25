@@ -144,58 +144,172 @@ Don't set weak passwords as I do since it is just for the demo. It should be abl
 
 ## OpenSSL
 
-The following codes display main procedure of authentication e.t.c. (Full code see repositories.) Note certificate is prerequisite even if user account and password are hold. Certificate is not bind with user's identity nor machine, but only with private key. Therefore, private key should be stored locally and ought not be transmitted. Immediately revoked if leaked and re-requested if lost.
+OpenSSL is used with default extensions to distinguish the type and purpose of files. The following shell script codes display procedure outline of certificates distribution and emulated authentication e.t.c. (Full codes and notes in repositories.) 
+
+Note certificate is prerequisite even if user account and password are hold. Certificate is not bind with user’s identity nor machine, but only with private key. Therefore, private key should be stored locally and ought **NOT** be transmitted. Immediately revoked if leaked and re-requested if lost. The realization is mainly for demo and not much efficient, but the structure can be inherited in further developments.
+
+ (This [link](https://www.golinuxcloud.com/tutorial-pki-certificates-authority-ocsp/) is a pratical tutorial.)
+
+### File Type
+All files use PEM format as default. The extensions indicate the types of file, note as following:
+
+- `*.key` Private Key
+- `*.pem` Certificate or Certificate chain file
+- `*.p12` PKCS #12 archive file format (key and cert)
+- `*.csr` Certificate signing request (CSR)
+- `*.cnf` Configuration File
+- `*.crl` Certificate revocation list (CRL)
+- `*.vrfy` Certificate Verification
+- `serial crlnumber ...` ANSI standard number file for CA
+- `index.txt` Certificate database for CA
+- `*.old` Backup file
+- `*.attr` Attributes file
+
+Notice that all files in demo are generated under local directory for instance. Directory should be identified and set properly under further developments. 
 
 ### CA
 
-Turn on a background process to run this shell file
+First, `ROOT_SELF_SIGNED_CERT_GEN.sh` is to generate certificate a self-signed root CA and intermediate CA for test, which can be replaced if a real root CA’s certificate is povided. After running it, root CA’s key and self-signed certificate would appear, and so do intermediate CA's. (`cert-bundle.pem` is the certificate chain.) Test running:
 
-```shell
-#!/bin/bash
-SERVER_PORT=6666
-# Start the netcat server in listen mode
-while true; do
-    nc -lnv $SERVER_PORT > ~/CA/client/client-req.pem
-    # Get the client IP address and port number as variables
-    client=... client_ip=... client_port=...
-    # Generate certificatee
-    openssl x509 -req -in ~/CA/client/client-req.pem -days 60 -CA ~/CA/ca-cert.pem -CAkey ~/CA/ca-key.pem -CAcreateserial -out ~/CA/client/client-cert.pem
-    # Send the modified file back to the client
-    nc $CLIENT_IP $CLIENT_PORT < ~/CA/client/client-cert.pem
-done
+```txt
+Press enter to continue: All *.pem *.csr would be removed!
+Press enter to continue: Check OpenSSL verion (locally)
+OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)
+Press enter to continue: 1. Generate ROOT's private key and self-signed.pemtificate
+Press enter to continue: 2. Generate CA server's private key and certificate signing request (CSR)
+You are about to be asked to enter information that will be incorporated into your certificate request.
+...
+Press enter to continue: 3. Use ROOT's private key to sign CA server's CSR and get back the signed certificate
+Certificate request self-signature ok
+subject=C = SE, ST = Stockholm, L = Stockholm, O = ACME, OU = headquater, CN = ca.demo.com, emailAddress = info@demo.com
+Certificate chain has been generated.
 ```
+
+Second, `CA_GEN.sh` is designed for CA to manually locally grant a single new user’s key and certificate. Some field must be filled accordingly to avoid verification failure. After running it, user's key and certificate (and p12 file) would appear and intermediate CA's database would be renewed. (`cert-bundle_new.pem` is the new certificate chain containing user's certificate.) Test running:
+
+```txt
+Input DIR for CA's cert and certificate chain. (e.g.:/home/usr) Ending with NO slash "\"
+(The CA key must name "ca.key". The chain must name "cert-bundle.pem". Failed if not found.)
+Current dir used if omitted:
+CA Key File Found. Chain File Found. 
+...
+Input name for key or certificate file (e.g.:"server")
+Use "client" if omitted:
+...
+Input DIR for client's key and generating CSR.
+ (The key must name client.key. If key is not found, it'll be generated.)
+Current dir used if omitted:
+File "client.key" Not Found. Generating...
+...
+If you have configuration file, make sure it under "./".
+ (The configuration must name client.cnf. )
+File "client.cnf" Not Found. Use default.
+Default CN:user.demo.com, email:info@demo.com
+Input common name (CN), default if omitted:
+...
+client.csr is under "./". Sending to CA...
+Using configuration from ./ca.cnf
+Check that the request matches the signature
+Signature ok
+Certificate Details:
+        Serial Number: ...
+        Validity
+            Not Before: ...
+            Not After : ...
+        Subject:
+           ...
+Certificate is to be certified until ... (365 days)
+Write out database with 1 new entries
+Data Base Updated
+...
+client.pem is under "./".
+Type any character to skip seeing certificate "client.pem":
+Certificate:
+    Data: ...
+    Signature Algorithm: md5WithRSAEncryption
+    Signature Value:
+        b7:2f:11:d3:33:29:c7:ab:af:ea:67:ca:b3:1d:1c:25:30:...
+./cert-bundle_new.pem: OK
+...
+Type any character to skip generating "client.p12":
+Enter Export Password:
+Verifying - Enter Export Password:
+Complete!
+```
+
+Third, `CA_CRL.sh` is for CA to revoke a certain certificate and maintain a CRL. After running it, the target certificate would be revoked and intermediate CA's CRL would be updated. Test running:
+
+```txt
+Enter certificate to revoke (e.g. client.pem):
+Use default [client.pem]
+Using configuration from ca.cnf
+Revoking Certificate 00.
+Data Base Updated
+...
+Press enter to continue: CRL generation
+Using configuration from ca.cnf
+...
+Press enter to continue: CRL view
+Certificate Revocation List (CRL):
+        Version 2 (0x1)
+        Signature Algorithm: md5WithRSAEncryption
+        Issuer: ...
+        Last Update: ...
+        Next Update: ...
+        CRL extensions:
+            X509v3 CRL Number: ...
+Revoked Certificates:
+    Serial Number: 00
+        Revocation Date: ...
+    Signature Algorithm: md5WithRSAEncryption
+    Signature Value:
+        29:40:6f:a2:fe:50:6c:d6:60:6f:d6:31:5c:9c:eb:70:ea:...
+```
+
+Last but not least, `CLEAN.sh` is to clean up all the affiliative files generated (not including `ca.cnf`, which is the initial file). Test running:
+
+```txt
+Press Enter to clean up all files generated.
+removed '00.pem'
+...
+Complete!
+```
+
+All above shell scripts have been added some robustness condition for tests.
+
+Notice that in the second step, it can be reformed easily to bash process a list of users with an information list (Not implemented). `CA_GEN_CERT.sh` (Deprecated) is for CA using client-server mode to listen to a fixed server port and receive CSR with `nc` command, and to sign certificates. (It can realize the separation of CA and requested users. For better demo.)
+
+`CA_old.sh` (Deprecated) is a very initial version of the implementation of CA, which is trying to use a Raspberry Pi 4 as a remote SSH CA server.
 
 ### Client
 
-If a new client with no certificate arrives, one can be requested by this shell file **CLIENT/\_GET/\_CERT.sh**
+Client can install its key and certificate in a p12 format file to get connect to servers automatically. 
 
-```shell
-#!/bin/bash
-CA_SERVER_IP=85.230.191.21
-CA_SERVER_PORT=6666
-dir_var=...
-# Generate CSR
-openssl req -new -key $dir_var/client-key.pem -out $dir_var/client-req.pem -subj "/C=SE/ST=Stockholm/L=Stockholm/O=ACME/OU=Headquarters/CN=$USER.acme.com/emailAddress=info@acme.com"
-# send the file to the server
-nc -q 1 $CA_SERVER_IP $CA_SERVER_PORT < $dir_var/client-req.pem
-# receive the modified file from the server
-nc -lv -q 1 $CA_SERVER_PORT > $dir_var/client-cert.pem
-# complete and display certificate
-openssl x509 -in $dir_var/client-cert.pem -noout -text
-```
+In original proposal, if a new client with no certificate arrives, one can be requested by `CLIENT_GET_CERT.sh` (Deprecated) with the co-orperation of `CA_GEN_CERT.sh` (Deprecated), through `nc` command. With it, client can generate CSR with its key and subject information, send it to CA as its IP address (or domain name, if DNS installed) is pre-configured, and get back its signed certificate. (For better demo.)
 
-If a client wants to access a server, it must finish mutual authentication by running shell file **CLIENT/\_GET/\_SERVER.sh**
+If a client wants to access a server, it must finish mutual authentication which can be tested with a TLS handshake given by `CLIENT_TEST_TLS.sh` (Shown below).
 
 ```shell
 read -p "Input server's IP" SERVER_IP
-openssl s_client -connect $SERVER_IP:4433 -servername server -brief -cert ~/client-cert.pem -key ~/client-key.pem -verify_return_error -state -CAfile ~/CA/ca-cert.pem
+openssl s_client -connect $SERVER_IP:4433 -servername server -brief -cert client.pem -key client.key -verify_return_error -state -CAfile root.pem
 ```
 
 ### Server
 
-Server has to run an authenticator **SERVER\_AUTH** in background to perfrom TLS, which is programmed and generated by C.
+Similarly, server needs to install its key and certificate to certain directory. Server has to well configure corresponding directory and path to enable SSL authentication, which is built-in in different application’s configuration file. Configuration steps may vary.
+
+Take *Apache2* as example, it has a set up of `default-ssl.conf` and an add on `ssl-param.conf` if needed. If setting the field `SSLCertificateVerification = required`, when a client try to access the web server by HTTPS, it should be required for selecting its certificate in a pop-in window of browser (if the p12 file is installed). If not satisfied, connection would be refused. (Refer to this [link](https://www.arubacloud.com/tutorial/how-to-enable-https-protocol-with-apache-2-on-ubuntu-20-04.aspx) or any other tutorials else)
+
+Server and client’s mutual authentication can be tested with a TLS handshake given by `SERVER_TEST_TLS.sh` (Shown below), in which the HTTP field can be set as web-server’s IP for client trying to fetch.
 
 ```shell
+read -p "web-server's IP" WEB_IP
+openssl s_server -cert server.pem -key server.key -state -Verify 5 -CAfile root.pem -HTTP $WEB_IP -verify_return_error
+```
+
+If you decide to run your own server for particular usage, you may need a more foundamental programming. Server has to run an authenticator `SERVER_AUTH` in background to perfrom TLS then grant permission to further operations, which is programmed and generated by C. (Demo code shown below. Refer to this [link](https://wiki.openssl.org/index.php/Simple_TLS_Server)) 
+
+```c++
 // ...
 int main(int argc, char **argv)
 {
@@ -220,6 +334,10 @@ int main(int argc, char **argv)
     close(sock); SSL_CTX_free(ctx);
 }
 ```
+
+P.S.1: Author who took charge of this part was trying to figure this out but eventually failed doing so. It also took great effort to install VScode server on Ubuntu server and remote program it on local Windows with C. :(
+
+P.S.2: `Makefile` is also a good implementation of OpenSSL initialization given by *FreeRadius*. Too bad for author having trouble learning to configure it. :(
 
 
 
@@ -310,11 +428,11 @@ BIND9 will create a path /etc/bind/ to create and store configuration files.
 
 Then we can configure vim named.conf.options file firstly,
 
-```shell
+```java
 options {
         directory "/var/cache/bind";
-        listen-on port 53 { any;}; // 
-        allow-query {any;}; //
+        listen-on port 53 { any; }; // 
+        allow-query { any; }; //
         // If there is a firewall between you and nameservers you want
         // to talk to, you may need to fix the firewall to allow multiple
         // ports to talk.  See http://www.kb.cert.org/vuls/id/800113
@@ -332,7 +450,7 @@ options {
         // If BIND logs error messages about the root key being expired,
         // you will need to update your keys.  See https://www.isc.org/bind-keys
         //========================================================================
-        dnssec-validation auto;//aut
+        dnssec-validation auto;//auto
         auth-nxdomain no;//
         //listen-on-v6 { any; };
         //include "/etc/rndc.key";
@@ -341,104 +459,61 @@ options {
 
 Then configure named.conf.local file to be certained about zones,
 
-```shell
-    //
-
-// Do any local configuration here
-
+```java
 //
-
-
-
-// Consider adding the 1918 zones here, if they are not used in your
-
-// organization
-
-//include "/etc/bind/zones.rfc1918";
+// Do any local configuration here
+//
+// Consider adding the 1918 zones here, if they are not used in your organization
+// include "/etc/bind/zones.rfc1918";
 
 zone "demo.com" {   
-
         type master;
-
         file "/etc/bind/db.demo.com";  
-
 };
 
 zone "168.192.in-addr.arpa"  {
-
     type master;
-
     file "/etc/bind/db.168.192";
-
 };
 ```
 
 Then we should configure db.demo.com and db.168.192 to achieve Forward parsing and reverse parsing,
 
 ```shell
-Then we should configure db.demo.com and db.168.192 to achieve Forward parsing and reverse parsing,
-\begin{python}
-    ;
-
+;
 ; BIND data file for local loopback interface
-
 ;
 
 $TTL    604800
-
 @       IN      SOA     demo.com. root.demo.com. (
-
                               2         ; Serial
-
                          604800         ; Refresh
-
                           86400         ; Retry
-
                         2419200         ; Expire
-
                          604800 )       ; Negative Cache TTL
-
 ;
-
 @       IN      NS      localhost.
-
 @       IN      A       192.168.6.233
-
 web     IN      A       192.168.6.113
-
 ;@      IN      AAAA    ::1
-
 * IN  A  192.168.6.233   ;
-
 ```
 
 ```shell
-    ; BIND reverse data file for local loopback interface
-
+; BIND reverse data file for local loopback interface
 ;
 
 $TTL    604800
-
 @       IN      SOA     demo.com. root.demo.com. (
-
                               1         ; Serial
-
                          604800         ; Refresh
-
                           86400         ; Retry
-
                         2419200         ; Expire
-
                          604800 )       ; Negative Cache TTL
-
 ;
-
 @       IN      NS      localhost.
-
 1.0.0   IN      PTR     localhost.
-
 233.6 IN PTR demo.com   ;
-
 113.6.168.192.in-addr.arpa.  IN	  PTR	  web.demo.com
 ```
 
